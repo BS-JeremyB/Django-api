@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Book
-
+from django.contrib.auth.models import User
 
 # class BookSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
@@ -13,9 +13,12 @@ from .models import Book
 #REFACTORISATION
 
 class BookSerializer(serializers.ModelSerializer):
+    
+    owner = serializers.ReadOnlyField(source='owner.username')
+
     class Meta:
         model = Book
-        fields = ['id','title','description','publication_date','genre','note']
+        fields = ['id','title','description','publication_date','genre','note', 'owner']
 
     def create(self, validated_data):
         return Book.objects.create(**validated_data)
@@ -30,3 +33,12 @@ class BookSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
+
+
+class UserSerializer(serializers.ModelSerializer):
+    books = serializers.PrimaryKeyRelatedField(many=True, queryset=Book.objects.all())
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'books']
